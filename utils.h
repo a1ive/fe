@@ -32,7 +32,7 @@ void KillProcessById(DWORD dwProcessId, UINT uExitCode);
 
 LONG SetResolution(LPCWSTR pMonitor, LPCWSTR pResolution, DWORD dwFlags);
 
-VOID ShowWindowByFile(LPCWSTR pFileName, INT nCmdShow);
+VOID ShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow);
 
 #ifdef __cplusplus
 }

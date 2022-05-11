@@ -379,10 +379,12 @@ static BOOL CALLBACK FeWindowIter(HWND hWnd, LPARAM lParam)
 	return TRUE;
 }
 
-VOID ShowWindowByFile(LPCWSTR pFileName, INT nCmdShow)
+VOID ShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow)
 {
+	static WORD op = 0;
 	struct WINDOW_HOOK_DATA whData;
 	whData.FileName = pFileName;
-	whData.CmdShow = nCmdShow;
+	whData.CmdShow = op ? nCmdShow : nCmdHide;
+	op = ~op;
 	EnumWindows(FeWindowIter, (LPARAM)&whData);
 }

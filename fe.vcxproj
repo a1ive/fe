@@ -103,13 +103,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cJSON\cJSON.c" />
     <ClCompile Include="fe.c" />
-    <ClCompile Include="json\cJSON.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cJSON\cJSON.h" />
     <ClInclude Include="fe.h" />
-    <ClInclude Include="json\cJSON.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="utils.h" />

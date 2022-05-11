@@ -2,7 +2,7 @@
 
 #include "fe.h"
 
-#include "json/cJSON.h"
+#include "cJSON/cJSON.h"
 #include "utils.h"
 
 #include <shellapi.h>
@@ -304,9 +304,10 @@ VOID HandleHotkey(const MSG* msg)
 	val = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "find")));
 	if (val)
 	{
-		CHAR* w = cJSON_GetStringValue(cJSON_GetObjectItem(hk, "window"));
+		CHAR* sh = cJSON_GetStringValue(cJSON_GetObjectItem(hk, "hide"));
+		CHAR* ss = cJSON_GetStringValue(cJSON_GetObjectItem(hk, "show"));
 		DBGF(L"Find: %s\n", val);
-		ShowWindowByFile(val, StrToShow(w ? w : "min"));
+		ShowWindowByTitle(val, StrToShow(sh ? sh : "hide"), StrToShow(ss ? ss : "restore"));
 		free(val);
 		return;
 	}

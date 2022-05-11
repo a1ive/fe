@@ -21,14 +21,11 @@
     <ClCompile Include="utils.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="json\cJSON.c">
+    <ClCompile Include="cJSON\cJSON.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="json\cJSON.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="fe.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -39,6 +36,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cJSON\cJSON.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
