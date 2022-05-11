@@ -11,7 +11,8 @@
 #define IDM_SHOW                        107
 #define IDM_RELOAD                      108
 #define IDM_EDIT                        109
-#define IDC_FE_MENU                     110
+#define IDM_LISTKEY                     110
+#define IDC_FE_MENU                     120
 #define IDR_MAINFRAME                   128
 #define IDI_ICON1                       131
 #define IDI_SMALL                       131

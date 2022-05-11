@@ -75,11 +75,12 @@ void ShowContextMenu(HWND hWnd)
 	if (hMenu)
 	{
 		if (IsWindowVisible(hWnd))
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_HIDE, L"Hide");
+			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_HIDE, L"Hide Window");
 		else
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_SHOW, L"Show");
-		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_RELOAD, L"Reload");
-		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EDIT, L"Edit");
+			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_SHOW, L"Show Window");
+		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_RELOAD, L"Reload JSON");
+		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EDIT, L"Edit JSON");
+		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_LISTKEY, L"List Hotkeys");
 		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EXIT, L"Exit");
 		SetForegroundWindow(hWnd);
 		TrackPopupMenu(hMenu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL);
@@ -150,6 +151,31 @@ VOID InitializeHotkey(cJSON* jsHotkeys)
 	}
 }
 
+VOID ListHotkey(HWND hWnd)
+{
+	int i;
+	WCHAR* msgText = calloc(65536, sizeof(WCHAR));
+	const cJSON* hks = cJSON_GetObjectItem(gJson, "hotkey");
+	if (!msgText || !hks)
+		return;
+	for (i = 0; i < gHotkeyCount; i++)
+	{
+		const cJSON* hk = cJSON_GetArrayItem(hks, i);
+		WCHAR* wk;
+		WCHAR* wn;
+		wk = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "key")));
+		if (!wk)
+			continue;
+		wn = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "note")));
+		swprintf(msgText, 65535, L"%s\n%-32s %s", msgText, wk, wn ? wn : L"");
+		if (wn)
+			free(wn);
+		free(wk);
+	}
+	MessageBoxW(hWnd, msgText, L"Hotkeys", MB_OK);
+	free(msgText);
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -207,6 +233,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			InitializeHotkey(cJSON_GetObjectItem(gJson, "hotkey"));
 		}
 		break;
+		case IDM_LISTKEY:
+			ListHotkey(hWnd);
+			break;
 		case IDM_ABOUT:
 			DialogBox(gInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
 			break;
