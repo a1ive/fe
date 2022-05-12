@@ -14,12 +14,11 @@ WCHAR gStaticBuf[MAX_STATIC_BUFSZ];
 HWND gWnd;
 HWND gStaticWnd;
 NOTIFYICONDATAW gNotifyIcon;
-
 INT gHotkeyCount;
-
 cJSON* gJson;
 
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK
+About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
@@ -38,7 +37,8 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)FALSE;
 }
 
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+static BOOL
+InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	gInst = hInstance;
 
@@ -66,7 +66,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	return TRUE;
 }
 
-void ShowContextMenu(HWND hWnd)
+static VOID
+ShowContextMenu(HWND hWnd)
 {
 	POINT pt;
 	HMENU hMenu;
@@ -75,12 +76,12 @@ void ShowContextMenu(HWND hWnd)
 	if (hMenu)
 	{
 		if (IsWindowVisible(hWnd))
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_HIDE, L"Hide Window");
+			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_HIDE, L"Hide");
 		else
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_SHOW, L"Show Window");
-		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_RELOAD, L"Reload JSON");
-		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EDIT, L"Edit JSON");
-		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_LISTKEY, L"List Hotkeys");
+			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_SHOW, L"Show");
+		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_RELOAD, L"Reload");
+		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EDIT, L"Edit");
+		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_LISTKEY, L"List");
 		InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EXIT, L"Exit");
 		SetForegroundWindow(hWnd);
 		TrackPopupMenu(hMenu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL);
@@ -88,7 +89,8 @@ void ShowContextMenu(HWND hWnd)
 	}
 }
 
-VOID InitializeJson(VOID)
+static VOID
+InitializeJson(VOID)
 {
 	CHAR* JsonConfig = LoadConfig(NULL);
 	if (!JsonConfig)
@@ -104,7 +106,8 @@ VOID InitializeJson(VOID)
 	DBGF(L"JSON Loaded.\n");
 }
 
-VOID InitializeHotkey(cJSON* jsHotkeys)
+static VOID
+InitializeHotkey(cJSON* jsHotkeys)
 {
 	int i;
 	const cJSON* hk = NULL;
@@ -151,7 +154,8 @@ VOID InitializeHotkey(cJSON* jsHotkeys)
 	}
 }
 
-VOID ListHotkey(HWND hWnd)
+static VOID
+ListHotkey(HWND hWnd)
 {
 	int i;
 	WCHAR* msgText = calloc(65536, sizeof(WCHAR));
@@ -167,7 +171,8 @@ VOID ListHotkey(HWND hWnd)
 		if (!wk)
 			continue;
 		wn = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "note")));
-		swprintf(msgText, 65535, L"%s\n%-32s %s", msgText, wk, wn ? wn : L"");
+		swprintf(msgText, 65535, L"%s%s%s%s\n", msgText,
+			wk, wn ? L", " : L"", wn ? wn : L"");
 		if (wn)
 			free(wn);
 		free(wk);
@@ -176,7 +181,8 @@ VOID ListHotkey(HWND hWnd)
 	free(msgText);
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK
+WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
@@ -265,7 +271,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-ATOM MyRegisterClass(HINSTANCE hInstance)
+static ATOM
+MyRegisterClass(HINSTANCE hInstance)
 {
 	WNDCLASSEXW wcex;
 
@@ -286,7 +293,8 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	return RegisterClassExW(&wcex);
 }
 
-VOID HandleHotkey(const MSG* msg)
+static VOID
+HandleHotkey(const MSG* msg)
 {
 	const cJSON* hks = NULL;
 	const cJSON* hk = NULL;
