@@ -10,32 +10,10 @@
 HINSTANCE gInst;
 WCHAR gTitle[MAX_LOADSTRING];
 WCHAR gWindowClass[MAX_LOADSTRING];
-WCHAR gStaticBuf[MAX_STATIC_BUFSZ];
 HWND gWnd;
-HWND gStaticWnd;
 NOTIFYICONDATAW gNotifyIcon;
 INT gHotkeyCount;
 cJSON* gJson;
-
-static INT_PTR CALLBACK
-About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		break;
-	}
-	return (INT_PTR)FALSE;
-}
 
 static BOOL
 InitInstance(HINSTANCE hInstance, int nCmdShow)
@@ -44,7 +22,7 @@ InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	gWnd = CreateWindowW(gWindowClass, gTitle,
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME,
-		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+		CW_USEDEFAULT, 0, 128, 72, NULL, NULL, hInstance, NULL);
 
 	if (!gWnd)
 		return FALSE;
@@ -58,8 +36,8 @@ InitInstance(HINSTANCE hInstance, int nCmdShow)
 	gNotifyIcon.uID = 1;
 	gNotifyIcon.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 	gNotifyIcon.uCallbackMessage = WM_APP;
-	gNotifyIcon.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
-	wcscpy_s(gNotifyIcon.szTip, 64, L"Fake Explorer");
+	gNotifyIcon.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON));
+	wcscpy_s(gNotifyIcon.szTip, 64, L"Fe");
 
 	Shell_NotifyIconW(NIM_ADD, &gNotifyIcon);
 
@@ -92,18 +70,18 @@ ShowContextMenu(HWND hWnd)
 static VOID
 InitializeJson(VOID)
 {
-	CHAR* JsonConfig = LoadConfig(NULL);
+	CHAR* JsonConfig = FeLoadConfig(NULL);
 	if (!JsonConfig)
 		return;
 	gJson = cJSON_Parse(JsonConfig);
 	if (!gJson)
 	{
 		const char* error_ptr = cJSON_GetErrorPtr();
-		DBGF(L"Invalid JSON: %S\n", error_ptr ? error_ptr : "UNKNOWN ERROR");
+		FeAddLog(1, L"Invalid JSON: %S\n", error_ptr ? error_ptr : "UNKNOWN ERROR");
 		return;
 	}
 	free(JsonConfig);
-	DBGF(L"JSON Loaded.\n");
+	FeAddLog(0, L"JSON Loaded.\n");
 }
 
 static VOID
@@ -124,33 +102,33 @@ InitializeHotkey(cJSON* jsHotkeys)
 		hk = cJSON_GetArrayItem(jsHotkeys, i);
 		if (!hk)
 		{
-			DBGF(L"Hotkey %d not found.\n", i);
+			FeAddLog(0, L"Hotkey %d not found.\n", i);
 			continue;
 		}
 		key = cJSON_GetObjectItem(hk, "key");
 		if (!key)
 		{
-			DBGF(L"Hotkey %d no key.\n", i);
+			FeAddLog(0, L"Hotkey %d no key.\n", i);
 			continue;
 		}
 		keyname = cJSON_GetStringValue(key);
 		if (!keyname)
 		{
-			DBGF(L"Hotkey %d invalid key.\n", i);
+			FeAddLog(0, L"Hotkey %d invalid key.\n", i);
 			continue;
 		}
-		vk = StrToKey(keyname, &fsModifiers);
+		vk = FeStrToKey(keyname, &fsModifiers);
 		if (vk == 0)
 		{
-			DBGF(L"Hotkey %d invalid string %S.\n", i, keyname);
+			FeAddLog(0, L"Hotkey %d invalid string %S.\n", i, keyname);
 			continue;
 		}
 		if (!RegisterHotKey(NULL, i + 1, fsModifiers, vk))
 		{
-			DBGF(L"Register hotkey %d %s failed.\n", i, KeyToStr(fsModifiers, vk));
+			FeAddLog(0, L"Register hotkey %d %s failed.\n", i, FeKeyToStr(fsModifiers, vk));
 			continue;
 		}
-		DBGF(L"Register hotkey %d %s OK.\n", i, KeyToStr(fsModifiers, vk));
+		FeAddLog(0, L"Register hotkey %d %s OK.\n", i, FeKeyToStr(fsModifiers, vk));
 	}
 }
 
@@ -167,10 +145,10 @@ ListHotkey(HWND hWnd)
 		const cJSON* hk = cJSON_GetArrayItem(hks, i);
 		WCHAR* wk;
 		WCHAR* wn;
-		wk = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "key")));
+		wk = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "key")));
 		if (!wk)
 			continue;
-		wn = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "note")));
+		wn = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "note")));
 		swprintf(msgText, 65535, L"%s%s%s%s\n", msgText,
 			wk, wn ? L", " : L"", wn ? wn : L"");
 		if (wn)
@@ -187,14 +165,6 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_CREATE:
-	{
-		RECT rWnd = { 0, 0, 1024, 1024 };
-		GetClientRect(hWnd, &rWnd);
-		gStaticWnd = CreateWindowW(L"static", gStaticBuf,
-			WS_CHILD | WS_VISIBLE | WS_BORDER | SS_LEFT,
-			0, 0, rWnd.right, rWnd.bottom,
-			hWnd, (HMENU)1, gInst, NULL);
-	}
 	break;
 	case WM_APP:
 	{
@@ -212,6 +182,9 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		int wmId = LOWORD(wParam);
 		switch (wmId)
 		{
+		case IDM_LOG:
+			FeShowLog();
+			break;
 		case IDM_SHOW:
 			ShowWindow(hWnd, SW_RESTORE);
 			break;
@@ -222,8 +195,8 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			BOOL bRet;
 			WCHAR wCmd[MAX_PATH + 12];
-			swprintf(wCmd, MAX_PATH + 12, L"notepad.exe \"%s\"", GetConfigPath());
-			bRet = ExecProgram(wCmd, SW_NORMAL, FALSE, TRUE);
+			swprintf(wCmd, MAX_PATH + 12, L"notepad.exe \"%s\"", FeGetConfigPath());
+			bRet = FeExec(wCmd, SW_NORMAL, FALSE, TRUE);
 			if (bRet == FALSE)
 				MessageBoxW(hWnd, L"CANNOT LOAD NOTEPAD.EXE!", L"ERROR", MB_OK);
 		}
@@ -234,16 +207,13 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			for (i = 1; i <= gHotkeyCount; i++)
 				UnregisterHotKey(NULL, i);
 			cJSON_Delete(gJson);
-			ClearLog();
+			FeClearLog();
 			InitializeJson();
 			InitializeHotkey(cJSON_GetObjectItem(gJson, "hotkey"));
 		}
 		break;
 		case IDM_LISTKEY:
 			ListHotkey(hWnd);
-			break;
-		case IDM_ABOUT:
-			DialogBox(gInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
@@ -283,12 +253,12 @@ MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = 0;
 	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON));
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_FE_MENU);
 	wcex.lpszClassName = gWindowClass;
-	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON));
 
 	return RegisterClassExW(&wcex);
 }
@@ -308,52 +278,52 @@ HandleHotkey(const MSG* msg)
 	hk = cJSON_GetArrayItem(hks, id);
 	if (!hk)
 		return;
-	val = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "exec")));
+	val = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "exec")));
 	if (val)
 	{
-		DBGF(L"Exec: %s\n", val);
-		ExecProgram(val, StrToShow(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "window"))), FALSE, FALSE);
+		FeAddLog(0, L"Exec: %s\n", val);
+		FeExec(val, FeStrToShow(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "window"))), FALSE, FALSE);
 		free(val);
 		return;
 	}
-	val = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "kill")));
+	val = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "kill")));
 	if (val)
 	{
-		DBGF(L"Kill: %s\n", val);
+		FeAddLog(0, L"Kill: %s\n", val);
 		if (_wcsnicmp(val, L"pid=", 4) == 0)
-			KillProcessById(wcstoul(&val[4], NULL, 0), 1);
+			FeKillProcessById(wcstoul(&val[4], NULL, 0), 1);
 		else
-			KillProcessByName(val, 1);
+			FeKillProcessByName(val, 1);
 		free(val);
 		return;
 	}
-	val = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "resolution")));
+	val = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "resolution")));
 	if (val)
 	{
-		WCHAR* dev = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "monitor")));
-		DBGF(L"Resolution: %s\n", val);
-		SetResolution(dev, val, CDS_UPDATEREGISTRY);
+		WCHAR* dev = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "monitor")));
+		FeAddLog(0, L"Resolution: %s\n", val);
+		FeSetResolution(dev, val, CDS_UPDATEREGISTRY);
 		if (dev)
 			free(dev);
 		free(val);
 		return;
 	}
-	val = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "find")));
+	val = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "find")));
 	if (val)
 	{
 		CHAR* sh = cJSON_GetStringValue(cJSON_GetObjectItem(hk, "hide"));
 		CHAR* ss = cJSON_GetStringValue(cJSON_GetObjectItem(hk, "show"));
-		DBGF(L"Find: %s\n", val);
-		ShowWindowByTitle(val, StrToShow(sh ? sh : "hide"), StrToShow(ss ? ss : "restore"));
+		FeAddLog(0, L"Find: %s\n", val);
+		FeShowWindowByTitle(val, FeStrToShow(sh ? sh : "hide"), FeStrToShow(ss ? ss : "restore"));
 		free(val);
 		return;
 	}
-	val = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "screenshot")));
+	val = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "screenshot")));
 	if (val)
 	{
-		WCHAR* save = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "save")));
-		DBGF(L"Screenshot: %s\n", val);
-		GetScreenShot(val, save);
+		WCHAR* save = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "save")));
+		FeAddLog(0, L"Screenshot: %s\n", val);
+		FeGetScreenShot(val, save);
 		if (save)
 			free(save);
 		free(val);
@@ -371,7 +341,7 @@ wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
 	gJson = 0;
-	gStaticBuf[0] = L'\0';
+	FeClearLog();
 
 	LoadStringW(hInstance, IDS_APP_TITLE, gTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_FE_MENU, gWindowClass, MAX_LOADSTRING);
@@ -379,7 +349,6 @@ wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR
 	hMutex = CreateMutexW(NULL, TRUE, L"Fe{1f0d5242-d60d-4cb3-a1f6-13990bc5dcd2}");
 	if (GetLastError() == ERROR_ALREADY_EXISTS || !hMutex)
 	{
-		//MessageBoxW(NULL, L"ALREADY EXISTS!", L"ERROR", MB_OK);
 		return 1;
 	}
 

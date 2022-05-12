@@ -2,21 +2,18 @@
 // Microsoft Visual C++ 生成的包含文件。
 // 供 fe.rc 使用
 //
-#define IDC_MYICON                      101
-#define IDS_APP_TITLE                   102
-#define IDD_ABOUTBOX                    103
-#define IDM_ABOUT                       104
+#define IDS_APP_TITLE                   101
+
+#define IDM_LOG                         103
+#define IDM_LISTKEY                     104
 #define IDM_EXIT                        105
 #define IDM_HIDE                        106
 #define IDM_SHOW                        107
 #define IDM_RELOAD                      108
 #define IDM_EDIT                        109
-#define IDM_LISTKEY                     110
+
 #define IDC_FE_MENU                     120
-#define IDR_MAINFRAME                   128
-#define IDI_ICON1                       131
-#define IDI_SMALL                       131
-#define IDC_STATIC                      -1
+#define IDI_ICON                        131
 
 // Next default values for new objects
 // 

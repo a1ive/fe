@@ -8,33 +8,35 @@ extern "C"
 {
 #endif
 
-VOID DBGF(WCHAR* fmt, ...);
+VOID FeAddLog(INT err, WCHAR* fmt, ...);
 
-VOID ClearLog(VOID);
+VOID FeClearLog(VOID);
 
-LPCWSTR GetConfigPath(VOID);
+VOID FeShowLog(VOID);
 
-CHAR* LoadConfig(DWORD* pSize);
+LPCWSTR FeGetConfigPath(VOID);
 
-LPCWSTR KeyToStr(UINT fsModifiers, UINT vk);
+CHAR* FeLoadConfig(DWORD* pSize);
 
-UINT StrToKey(LPCSTR pName, UINT* pModifiers);
+LPCWSTR FeKeyToStr(UINT fsModifiers, UINT vk);
 
-WCHAR* Utf8ToWcs(LPCSTR str);
+UINT FeStrToKey(LPCSTR pName, UINT* pModifiers);
 
-BOOL ExecProgram(LPCWSTR pCmd, WORD wShowWindow, BOOL bWinLogon, BOOL bWait);
+WCHAR* FeUtf8ToWcs(LPCSTR str);
 
-WORD StrToShow(LPCSTR sw);
+BOOL FeExec(LPCWSTR pCmd, WORD wShowWindow, BOOL bWinLogon, BOOL bWait);
 
-void KillProcessByName(WCHAR* pName, UINT uExitCode);
+WORD FeStrToShow(LPCSTR sw);
 
-void KillProcessById(DWORD dwProcessId, UINT uExitCode);
+void FeKillProcessByName(WCHAR* pName, UINT uExitCode);
 
-LONG SetResolution(LPCWSTR pMonitor, LPCWSTR pResolution, DWORD dwFlags);
+void FeKillProcessById(DWORD dwProcessId, UINT uExitCode);
 
-VOID ShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow);
+LONG FeSetResolution(LPCWSTR pMonitor, LPCWSTR pResolution, DWORD dwFlags);
 
-BOOL GetScreenShot(LPCWSTR lpScreen, LPCWSTR lpSave);
+VOID FeShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow);
+
+BOOL FeGetScreenShot(LPCWSTR lpScreen, LPCWSTR lpSave);
 
 #ifdef __cplusplus
 }

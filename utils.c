@@ -5,34 +5,43 @@
 #include <tlhelp32.h>
 #include <shlwapi.h>
 
+#define MAX_LOG_BUFSZ 65535ULL
+
+static WCHAR log_buf[MAX_LOG_BUFSZ];
+
 static int dbg_offset = 0;
 
-VOID DBGF(WCHAR* fmt, ...)
+VOID FeAddLog(INT err, WCHAR* fmt, ...)
 {
 	int len;
 	va_list args;
 	va_start(args, fmt);
-	if (dbg_offset < 0 || dbg_offset >= MAX_STATIC_BUFSZ - 100)
+	if (dbg_offset < 0 || dbg_offset >= MAX_LOG_BUFSZ - 100)
 		dbg_offset = 0;
-	len = _vsnwprintf_s(gStaticBuf + dbg_offset, MAX_STATIC_BUFSZ - dbg_offset - 1, _TRUNCATE, fmt, args);
+	len = _vsnwprintf_s(log_buf + dbg_offset, MAX_LOG_BUFSZ - dbg_offset - 1, _TRUNCATE, fmt, args);
+	if (err)
+		MessageBoxW(gWnd, log_buf + dbg_offset, L"ERROR", MB_OK);
 	dbg_offset += len;
-	SetWindowTextW(gStaticWnd, gStaticBuf);
 }
 
-VOID ClearLog(VOID)
+VOID FeClearLog(VOID)
 {
 	dbg_offset = 0;
-	gStaticBuf[0] = L'\0';
-	SetWindowTextW(gStaticWnd, gStaticBuf);
+	log_buf[0] = L'\0';
 }
 
-LPCWSTR GetConfigPath(VOID)
+VOID FeShowLog(VOID)
+{
+	MessageBoxW(gWnd, log_buf, L"LOG", MB_OK);
+}
+
+LPCWSTR FeGetConfigPath(VOID)
 {
 	static WCHAR FilePath[MAX_PATH];
 	WCHAR* pExt = NULL;
 	if (!GetModuleFileNameW(NULL, FilePath, MAX_PATH))
 	{
-		DBGF(L"GetModuleFileName failed.\n");
+		FeAddLog(0, L"GetModuleFileName failed.\n");
 		swprintf(FilePath, MAX_PATH, L"fe.exe");
 	}
 	pExt = wcsrchr(FilePath, L'.');
@@ -48,31 +57,31 @@ LPCWSTR GetConfigPath(VOID)
 	return FilePath;
 }
 
-CHAR* LoadConfig(DWORD* pSize)
+CHAR* FeLoadConfig(DWORD* pSize)
 {
 	HANDLE Fp = INVALID_HANDLE_VALUE;
 	DWORD dwSize = 0;
 	BOOL bRet = TRUE;
 	CHAR* pConfig = NULL;
-	LPCWSTR FilePath = GetConfigPath();
+	LPCWSTR FilePath = FeGetConfigPath();
 	
 	Fp = CreateFileW(FilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (Fp == INVALID_HANDLE_VALUE)
 	{
-		DBGF(L"CreateFile %s failed.\n", FilePath);
+		FeAddLog(0, L"CreateFile %s failed.\n", FilePath);
 		return NULL;
 	}
 	dwSize = GetFileSize(Fp, NULL);
 	if (dwSize == INVALID_FILE_SIZE || dwSize == 0)
 	{
-		DBGF(L"GetFileSize %s failed.\n", FilePath);
+		FeAddLog(0, L"GetFileSize %s failed.\n", FilePath);
 		CloseHandle(Fp);
 		return NULL;
 	}
 	pConfig = (CHAR*)malloc(dwSize);
 	if (!pConfig)
 	{
-		DBGF(L"Out of memory %lu.\n", dwSize);
+		FeAddLog(0, L"Out of memory %lu.\n", dwSize);
 		CloseHandle(Fp);
 		return NULL;
 	}
@@ -82,11 +91,11 @@ CHAR* LoadConfig(DWORD* pSize)
 	CloseHandle(Fp);
 	if (!bRet)
 	{
-		DBGF(L"File %s read error.\n", FilePath);
+		FeAddLog(0, L"File %s read error.\n", FilePath);
 		free(pConfig);
 		return NULL;
 	}
-	DBGF(L"Load %s, size %lu.\n", FilePath, dwSize);
+	FeAddLog(0, L"Load %s, size %lu.\n", FilePath, dwSize);
 	return pConfig;
 }
 
@@ -167,7 +176,7 @@ static KEYSYM keytable[] =
 	//{"f12",           VK_F12},
 };
 
-LPCWSTR KeyToStr(UINT fsModifiers, UINT vk)
+LPCWSTR FeKeyToStr(UINT fsModifiers, UINT vk)
 {
 	static WCHAR keyname[64];
 	WCHAR tmp[32];
@@ -196,7 +205,7 @@ LPCWSTR KeyToStr(UINT fsModifiers, UINT vk)
 }
 
 UINT
-StrToKey(LPCSTR pName, UINT* pModifiers)
+FeStrToKey(LPCSTR pName, UINT* pModifiers)
 {
 	size_t i;
 	UINT vk = 0;
@@ -245,7 +254,7 @@ StrToKey(LPCSTR pName, UINT* pModifiers)
 	return vk;
 }
 
-WCHAR* Utf8ToWcs(LPCSTR str)
+WCHAR* FeUtf8ToWcs(LPCSTR str)
 {
 	WCHAR* val = NULL;
 	int sz = 0;
@@ -263,7 +272,7 @@ WCHAR* Utf8ToWcs(LPCSTR str)
 
 static WCHAR cmdline_buf[32767];
 
-BOOL ExecProgram(LPCWSTR pCmd, WORD wShowWindow, BOOL bWinLogon, BOOL bWait)
+BOOL FeExec(LPCWSTR pCmd, WORD wShowWindow, BOOL bWinLogon, BOOL bWait)
 {
 	STARTUPINFOW si = { 0 };
 	PROCESS_INFORMATION pi;
@@ -289,7 +298,7 @@ BOOL ExecProgram(LPCWSTR pCmd, WORD wShowWindow, BOOL bWinLogon, BOOL bWait)
 	return bRet;
 }
 
-WORD StrToShow(LPCSTR sw)
+WORD FeStrToShow(LPCSTR sw)
 {
 	WORD wCmdShow = SW_NORMAL;
 	if (!sw || _stricmp(sw, "normal") == 0)
@@ -308,7 +317,7 @@ WORD StrToShow(LPCSTR sw)
 }
 
 void
-KillProcessByName(WCHAR* pName, UINT uExitCode)
+FeKillProcessByName(WCHAR* pName, UINT uExitCode)
 {
 	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPALL, 0);
 	PROCESSENTRY32W pEntry = { .dwSize = sizeof(pEntry) };
@@ -333,14 +342,14 @@ KillProcessByName(WCHAR* pName, UINT uExitCode)
 }
 
 void
-KillProcessById(DWORD dwProcessId, UINT uExitCode)
+FeKillProcessById(DWORD dwProcessId, UINT uExitCode)
 {
 	HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, dwProcessId);
 	TerminateProcess(hProcess, uExitCode);
 	CloseHandle(hProcess);
 }
 
-LONG SetResolution(LPCWSTR pMonitor, LPCWSTR pResolution, DWORD dwFlags)
+LONG FeSetResolution(LPCWSTR pMonitor, LPCWSTR pResolution, DWORD dwFlags)
 {
 	LPCWSTR pWidth, pHeight;
 	DEVMODEW dMode;
@@ -373,13 +382,13 @@ static BOOL CALLBACK FeWindowIter(HWND hWnd, LPARAM lParam)
 		return TRUE;
 	if (StrStrIW(FileName, pData->FileName))
 	{
-		DBGF(L"Window %s\n", FileName);
+		FeAddLog(0, L"Window %s\n", FileName);
 		ShowWindow(hWnd, pData->CmdShow);
 	}
 	return TRUE;
 }
 
-VOID ShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow)
+VOID FeShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow)
 {
 	static WORD op = 0;
 	struct WINDOW_HOOK_DATA whData;

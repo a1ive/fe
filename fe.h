@@ -13,7 +13,6 @@
 #include "cJSON/cJSON.h"
 
 #define MAX_LOADSTRING 100
-#define MAX_STATIC_BUFSZ 65535ULL
 
 #ifdef __cplusplus
 extern "C"
@@ -23,9 +22,7 @@ extern "C"
 extern HINSTANCE gInst;
 extern WCHAR gTitle[MAX_LOADSTRING];
 extern WCHAR gWindowClass[MAX_LOADSTRING];
-extern WCHAR gStaticBuf[MAX_STATIC_BUFSZ];
 extern HWND gWnd;
-extern HWND gStaticWnd;
 extern INT gHotkeyCount;
 extern cJSON* gJson;
 

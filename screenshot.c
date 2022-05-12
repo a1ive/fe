@@ -54,7 +54,7 @@ static BOOL BmpToPng(HANDLE hf, HDC hDC, HBITMAP hBitmap, UINT w, UINT h)
 {
 	BOOL bRet = FALSE;
 	DWORD dwPng = 0;
-	SIZE_T i, szImg, szPng = 0;
+	size_t i, szImg, szPng = 0;
 	RGBA_PIXEL* raw = NULL;
 	UCHAR* png = NULL;
 	BITMAPINFOHEADER bmi = { 0 };
@@ -140,7 +140,7 @@ BOOL SaveScreenShot(LPCWSTR lpSave, HDC hDC, HBITMAP hBitmap, UINT w, UINT h)
 	return bRet;
 }
 
-BOOL GetScreenShot(LPCWSTR lpScreen, LPCWSTR lpSave)
+BOOL FeGetScreenShot(LPCWSTR lpScreen, LPCWSTR lpSave)
 {
 	int x = 0, y = 0, w = 0, h = 0;
 	HDC hScreen = NULL;
@@ -149,7 +149,7 @@ BOOL GetScreenShot(LPCWSTR lpScreen, LPCWSTR lpSave)
 	BOOL bRet = FALSE;
 
 	GetScreenXY(lpScreen, &x, &y, &w, &h);
-	DBGF(L"x=%d, y=%d, w=%d, h=%d\n", x, y, w, h);
+	FeAddLog(0, L"x=%d, y=%d, w=%d, h=%d\n", x, y, w, h);
 	hScreen = GetDC(NULL);
 	hDC = CreateCompatibleDC(hScreen);
 	if (!hDC)
