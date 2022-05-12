@@ -348,6 +348,17 @@ HandleHotkey(const MSG* msg)
 		free(val);
 		return;
 	}
+	val = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "screenshot")));
+	if (val)
+	{
+		WCHAR* save = Utf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "save")));
+		DBGF(L"Screenshot: %s\n", val);
+		GetScreenShot(val, save);
+		if (save)
+			free(save);
+		free(val);
+		return;
+	}
 }
 
 int APIENTRY

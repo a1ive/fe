@@ -13,6 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="cJSON">
+      <UniqueIdentifier>{1eaebf3a-a37c-4e0a-9c0e-920983fdebe8}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx;h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="lodepng">
+      <UniqueIdentifier>{4e31433b-146f-460c-93e2-9847c265e8c0}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx;h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="fe.c">
@@ -21,8 +29,14 @@
     <ClCompile Include="utils.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="cJSON\cJSON.c">
+    <ClCompile Include="screenshot.c">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cJSON\cJSON.c">
+      <Filter>cJSON</Filter>
+    </ClCompile>
+    <ClCompile Include="lodepng\lodepng.c">
+      <Filter>lodepng</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -39,7 +53,10 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="cJSON\cJSON.h">
-      <Filter>头文件</Filter>
+      <Filter>cJSON</Filter>
+    </ClInclude>
+    <ClInclude Include="lodepng\lodepng.h">
+      <Filter>lodepng</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

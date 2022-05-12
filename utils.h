@@ -34,6 +34,8 @@ LONG SetResolution(LPCWSTR pMonitor, LPCWSTR pResolution, DWORD dwFlags);
 
 VOID ShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow);
 
+BOOL GetScreenShot(LPCWSTR lpScreen, LPCWSTR lpSave);
+
 #ifdef __cplusplus
 }
 #endif
