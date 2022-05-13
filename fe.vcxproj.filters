@@ -38,6 +38,9 @@
     <ClCompile Include="lodepng\lodepng.c">
       <Filter>lodepng</Filter>
     </ClCompile>
+    <ClCompile Include="hotkey.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fe.h">

@@ -236,7 +236,7 @@ FeStrToKey(LPCSTR pName, UINT* pModifiers)
 		{
 			p += 4;
 			// Hotkeys that involve the Windows key are reserved for use by the operating system.
-			// fsModifiers |= MOD_WIN;
+			fsModifiers |= MOD_WIN;
 			continue;
 		}
 		break;

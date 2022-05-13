@@ -111,6 +111,7 @@
   <ItemGroup>
     <ClCompile Include="cJSON\cJSON.c" />
     <ClCompile Include="fe.c" />
+    <ClCompile Include="hotkey.c" />
     <ClCompile Include="lodepng\lodepng.c">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Level4</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>

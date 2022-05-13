@@ -10,8 +10,6 @@
 #include <memory.h>
 #include <tchar.h>
 
-#include "cJSON/cJSON.h"
-
 #define MAX_LOADSTRING 100
 
 #ifdef __cplusplus
@@ -19,12 +17,7 @@ extern "C"
 {
 #endif
 
-extern HINSTANCE gInst;
-extern WCHAR gTitle[MAX_LOADSTRING];
-extern WCHAR gWindowClass[MAX_LOADSTRING];
 extern HWND gWnd;
-extern INT gHotkeyCount;
-extern cJSON* gJson;
 
 #ifdef __cplusplus
 }

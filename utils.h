@@ -2,6 +2,7 @@
 #pragma once
 
 #include "fe.h"
+#include "cJSON/cJSON.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -37,6 +38,14 @@ LONG FeSetResolution(LPCWSTR pMonitor, LPCWSTR pResolution, DWORD dwFlags);
 VOID FeShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow);
 
 BOOL FeGetScreenShot(LPCWSTR lpScreen, LPCWSTR lpSave);
+
+VOID FeUnregisterHotkey(VOID);
+
+VOID FeInitializeHotkey(cJSON* jsHotkeys);
+
+VOID FeListHotkey(HWND hWnd);
+
+VOID FeHandleHotkey(const MSG* msg);
 
 #ifdef __cplusplus
 }
