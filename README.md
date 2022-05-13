@@ -43,7 +43,7 @@ Fe 支持使用十六进制的按键代码 ([代码参考](https://docs.microsof
 
 ### 定义快捷键
 
-```json
+```
 {
 	"Hotkey":
 	[

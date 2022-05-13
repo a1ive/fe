@@ -113,11 +113,15 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDM_EDIT:
 		{
 			BOOL bRet;
-			WCHAR wCmd[MAX_PATH + 12];
-			swprintf(wCmd, MAX_PATH + 12, L"notepad.exe \"%s\"", FeGetConfigPath());
+			WCHAR wCmd[MAX_PATH + 28];
+			LPCWSTR lpConfig = FeGetConfigPath();
+			swprintf(wCmd, MAX_PATH + 28, L"notepad.exe \"%s\"", lpConfig);
 			bRet = FeExec(wCmd, SW_NORMAL, FALSE, TRUE);
 			if (bRet == FALSE)
-				MessageBoxW(hWnd, L"CANNOT LOAD NOTEPAD.EXE!", L"ERROR", MB_OK);
+			{
+				swprintf(wCmd, MAX_PATH + 28, L"CANNOT LOAD\n%s", lpConfig);
+				MessageBoxW(hWnd, wCmd, L"ERROR", MB_OK);
+			}
 		}
 		/* fall through */
 		case IDM_RELOAD:
