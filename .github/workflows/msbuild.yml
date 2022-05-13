@@ -38,8 +38,7 @@ jobs:
         move Win32\Release\fe.exe fe\x86\fe.exe
         copy example.json fe\x86\fe.json
         copy LICENSE fe\LICENSE
-        copy cJSON\LICENSE fe\LICENSE_cJSON
-        copy lodepng\LICENSE fe\LICENSE_lodepng
+        copy README.md fe\README.md
 
     - uses: thedoctor0/zip-release@master
       with:
