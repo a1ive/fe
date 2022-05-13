@@ -31,9 +31,15 @@ jobs:
         msbuild /m /p:Configuration=Release /p:platform=x64 ${{env.SOLUTION_FILE_PATH}}
         msbuild /m /p:Configuration=Release /p:platform=x86 ${{env.SOLUTION_FILE_PATH}}
         md fe
-        move x64\Release\fe.exe fe\fe_x64.exe
-        move Win32\Release\fe.exe fe\fe_x86.exe
+        md fe\x64
+        move x64\Release\fe.exe fe\x64\fe.exe
+        copy example.json fe\x64\fe.json
+        md fe\x86
+        move Win32\Release\fe.exe fe\x86\fe.exe
+        copy example.json fe\x86\fe.json
         copy LICENSE fe\LICENSE
+        copy cJSON\LICENSE fe\LICENSE_cJSON
+        copy lodepng\LICENSE fe\LICENSE_lodepng
 
     - uses: thedoctor0/zip-release@master
       with:

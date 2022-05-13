@@ -1,0 +1,53 @@
+{
+	"Hotkey":
+	[
+		{
+			"Key" : "ctrl-alt-a",
+			"Exec" : "%windir%\\notepad.exe /t fe"
+		},
+		{
+			"Key" : "ctrl-win-h",
+			"Exec" : "cmd.exe /c a.bat",
+			"Window" : "hide"
+		},
+		{
+			"Key" : "ctrl-alt-shift-enter",
+			"Note" : "注册表编辑器",
+			"Exec" : "regedit.exe"
+		},
+		{
+			"Key" : "alt-c",
+			"Note" : "杀死 cmd.exe 进程",
+			"Kill" : "cmd.exe"
+		},
+		{
+			"Key" : "ctrl-alt-1",
+			"Note" : "设置分辨率为1024x768",
+			"Monitor" : "\\\\.\\DISPLAY1",
+			"Resolution" : "1024x768"
+		},
+		{
+			"Key" : "ctrl-alt-2",
+			"Resolution" : "1920x1080"
+		},
+		{
+			"Key" : "ctrl-shift-1",
+			"Note" : "隐藏 Chrome 窗口",
+			"Find" : "chrome",
+			"Hide" : "hide",
+			"Show" : "restore"
+		},
+		{
+			"Key" : "ctrl-shift-2",
+			"Note" : "截图 (当前窗口)， 保存到剪贴板",
+			"Screenshot" : "current",
+			"Save" : "clipboard"
+		},
+		{
+			"Key" : "ctrl-shift-3",
+			"Note" : "截图 (全屏)",
+			"Screenshot" : "all",
+			"Save" : "ask"
+		}
+	]
+}
