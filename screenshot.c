@@ -149,7 +149,7 @@ BOOL FeGetScreenShot(LPCWSTR lpScreen, LPCWSTR lpSave)
 	BOOL bRet = FALSE;
 
 	GetScreenXY(lpScreen, &x, &y, &w, &h);
-	FeAddLog(0, L"x=%d, y=%d, w=%d, h=%d\n", x, y, w, h);
+	FeAddLog(0, L"x=%d, y=%d, w=%d, h=%d\r\n", x, y, w, h);
 	hScreen = GetDC(NULL);
 	hDC = CreateCompatibleDC(hScreen);
 	if (!hDC)

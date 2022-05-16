@@ -13,8 +13,6 @@ VOID FeAddLog(INT err, WCHAR* fmt, ...);
 
 VOID FeClearLog(VOID);
 
-VOID FeShowLog(VOID);
-
 LPCWSTR FeGetConfigPath(VOID);
 
 CHAR* FeLoadConfig(DWORD* pSize);

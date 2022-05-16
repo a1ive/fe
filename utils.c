@@ -21,6 +21,7 @@ VOID FeAddLog(INT err, WCHAR* fmt, ...)
 	len = _vsnwprintf_s(log_buf + dbg_offset, MAX_LOG_BUFSZ - dbg_offset - 1, _TRUNCATE, fmt, args);
 	if (err)
 		MessageBoxW(gWnd, log_buf + dbg_offset, L"ERROR", MB_OK);
+	SetDlgItemTextW(gWnd, IDC_STATIC_LOG, log_buf);
 	dbg_offset += len;
 }
 
@@ -30,18 +31,13 @@ VOID FeClearLog(VOID)
 	log_buf[0] = L'\0';
 }
 
-VOID FeShowLog(VOID)
-{
-	MessageBoxW(gWnd, log_buf, L"LOG", MB_OK);
-}
-
 LPCWSTR FeGetConfigPath(VOID)
 {
 	static WCHAR FilePath[MAX_PATH];
 	WCHAR* pExt = NULL;
 	if (!GetModuleFileNameW(NULL, FilePath, MAX_PATH))
 	{
-		FeAddLog(0, L"GetModuleFileName failed.\n");
+		FeAddLog(0, L"GetModuleFileName failed.\r\n");
 		swprintf(FilePath, MAX_PATH, L"fe.exe");
 	}
 	pExt = wcsrchr(FilePath, L'.');
@@ -68,20 +64,20 @@ CHAR* FeLoadConfig(DWORD* pSize)
 	Fp = CreateFileW(FilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (Fp == INVALID_HANDLE_VALUE)
 	{
-		FeAddLog(0, L"CreateFile %s failed.\n", FilePath);
+		FeAddLog(0, L"CreateFile %s failed.\r\n", FilePath);
 		return NULL;
 	}
 	dwSize = GetFileSize(Fp, NULL);
 	if (dwSize == INVALID_FILE_SIZE || dwSize == 0)
 	{
-		FeAddLog(0, L"GetFileSize %s failed.\n", FilePath);
+		FeAddLog(0, L"GetFileSize %s failed.\r\n", FilePath);
 		CloseHandle(Fp);
 		return NULL;
 	}
 	pConfig = (CHAR*)malloc(dwSize);
 	if (!pConfig)
 	{
-		FeAddLog(0, L"Out of memory %lu.\n", dwSize);
+		FeAddLog(0, L"Out of memory %lu.\r\n", dwSize);
 		CloseHandle(Fp);
 		return NULL;
 	}
@@ -91,11 +87,11 @@ CHAR* FeLoadConfig(DWORD* pSize)
 	CloseHandle(Fp);
 	if (!bRet)
 	{
-		FeAddLog(0, L"File %s read error.\n", FilePath);
+		FeAddLog(0, L"File %s read error.\r\n", FilePath);
 		free(pConfig);
 		return NULL;
 	}
-	FeAddLog(0, L"Load %s, size %lu.\n", FilePath, dwSize);
+	FeAddLog(0, L"Load %s, size %lu.\r\n", FilePath, dwSize);
 	return pConfig;
 }
 
@@ -382,7 +378,7 @@ static BOOL CALLBACK FeWindowIter(HWND hWnd, LPARAM lParam)
 		return TRUE;
 	if (StrStrIW(FileName, pData->FileName))
 	{
-		FeAddLog(0, L"Window %s\n", FileName);
+		FeAddLog(0, L"Window %s\r\n", FileName);
 		ShowWindow(hWnd, pData->CmdShow);
 	}
 	return TRUE;

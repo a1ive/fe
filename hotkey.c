@@ -39,35 +39,35 @@ FeInitializeHotkey(cJSON* jsHotkeys)
 		hk = cJSON_GetArrayItem(mHotkeyJson, i);
 		if (!hk)
 		{
-			FeAddLog(0, L"Hotkey %d not found.\n", i);
+			FeAddLog(0, L"Hotkey %d not found.\r\n", i);
 			continue;
 		}
 		key = cJSON_GetObjectItem(hk, "key");
 		if (!key)
 		{
-			FeAddLog(0, L"Hotkey %d no key.\n", i);
+			FeAddLog(0, L"Hotkey %d no key.\r\n", i);
 			continue;
 		}
 		keyname = cJSON_GetStringValue(key);
 		if (!keyname)
 		{
-			FeAddLog(0, L"Hotkey %d invalid key.\n", i);
+			FeAddLog(0, L"Hotkey %d invalid key.\r\n", i);
 			continue;
 		}
 		vk = FeStrToKey(keyname, &fsModifiers);
 		if (vk == 0)
 		{
-			FeAddLog(0, L"Hotkey %d invalid string %S.\n", i, keyname);
+			FeAddLog(0, L"Hotkey %d invalid string %S.\r\n", i, keyname);
 			continue;
 		}
 		if (!RegisterHotKey(NULL, i, fsModifiers, vk))
 		{
 			mHotkeyData[i] = 0;
-			FeAddLog(0, L"Register hotkey %d %s failed.\n", i, FeKeyToStr(fsModifiers, vk));
+			FeAddLog(0, L"Register hotkey %d %s failed.\r\n", i, FeKeyToStr(fsModifiers, vk));
 			continue;
 		}
 		mHotkeyData[i] = (((UINT64)fsModifiers) << 32U) | vk;
-		FeAddLog(0, L"Register hotkey %d %s OK.\n", i, FeKeyToStr(fsModifiers, vk));
+		FeAddLog(0, L"Register hotkey %d %s OK.\r\n", i, FeKeyToStr(fsModifiers, vk));
 	}
 }
 
@@ -110,7 +110,7 @@ FeHandleHotkey(const MSG* msg)
 	val = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "exec")));
 	if (val)
 	{
-		FeAddLog(0, L"Exec: %s\n", val);
+		FeAddLog(0, L"Exec: %s\r\n", val);
 		FeExec(val, FeStrToShow(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "window"))), FALSE, FALSE);
 		free(val);
 		return;
@@ -118,7 +118,7 @@ FeHandleHotkey(const MSG* msg)
 	val = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "kill")));
 	if (val)
 	{
-		FeAddLog(0, L"Kill: %s\n", val);
+		FeAddLog(0, L"Kill: %s\r\n", val);
 		if (_wcsnicmp(val, L"pid=", 4) == 0)
 			FeKillProcessById(wcstoul(&val[4], NULL, 0), 1);
 		else
@@ -130,7 +130,7 @@ FeHandleHotkey(const MSG* msg)
 	if (val)
 	{
 		WCHAR* dev = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "monitor")));
-		FeAddLog(0, L"Resolution: %s\n", val);
+		FeAddLog(0, L"Resolution: %s\r\n", val);
 		FeSetResolution(dev, val, CDS_UPDATEREGISTRY);
 		if (dev)
 			free(dev);
@@ -142,7 +142,7 @@ FeHandleHotkey(const MSG* msg)
 	{
 		CHAR* sh = cJSON_GetStringValue(cJSON_GetObjectItem(hk, "hide"));
 		CHAR* ss = cJSON_GetStringValue(cJSON_GetObjectItem(hk, "show"));
-		FeAddLog(0, L"Find: %s\n", val);
+		FeAddLog(0, L"Find: %s\r\n", val);
 		FeShowWindowByTitle(val, FeStrToShow(sh ? sh : "hide"), FeStrToShow(ss ? ss : "restore"));
 		free(val);
 		return;
@@ -151,7 +151,7 @@ FeHandleHotkey(const MSG* msg)
 	if (val)
 	{
 		WCHAR* save = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "save")));
-		FeAddLog(0, L"Screenshot: %s\n", val);
+		FeAddLog(0, L"Screenshot: %s\r\n", val);
 		FeGetScreenShot(val, save);
 		if (save)
 			free(save);
