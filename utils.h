@@ -15,7 +15,13 @@ VOID FeClearLog(VOID);
 
 LPCWSTR FeGetConfigPath(VOID);
 
-CHAR* FeLoadConfig(DWORD* pSize);
+cJSON* FeInitializeConfig(VOID);
+
+VOID FeReloadConfig(cJSON** m);
+
+VOID FeEditConfig(HWND hWnd, cJSON** m);
+
+VOID FeParseConfig(const cJSON* hk);
 
 LPCWSTR FeKeyToStr(UINT fsModifiers, UINT vk);
 
@@ -24,6 +30,8 @@ UINT FeStrToKey(LPCSTR pName, UINT* pModifiers);
 WCHAR* FeUtf8ToWcs(LPCSTR str);
 
 BOOL FeExec(LPCWSTR pCmd, WORD wShowWindow, BOOL bWinLogon, BOOL bWait);
+
+VOID FeShellExec(LPCWSTR lpOperation, LPCWSTR lpFile, LPCWSTR lpParameters, LPCWSTR lpDirectory, INT nShowCmd);
 
 WORD FeStrToShow(LPCSTR sw);
 
@@ -44,6 +52,8 @@ VOID FeInitializeHotkey(cJSON* jsHotkeys);
 VOID FeListHotkey(HWND hWnd);
 
 VOID FeHandleHotkey(const MSG* msg);
+
+BOOL FeIsChs(VOID);
 
 #ifdef __cplusplus
 }

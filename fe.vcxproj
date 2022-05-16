@@ -110,6 +110,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cJSON\cJSON.c" />
+    <ClCompile Include="config.c" />
     <ClCompile Include="fe.c" />
     <ClCompile Include="hotkey.c" />
     <ClCompile Include="lodepng\lodepng.c">

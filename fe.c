@@ -37,20 +37,42 @@ InitializeInstance(HINSTANCE hInstance, int nCmdShow, DLGPROC lpDialogFunc)
 }
 
 static VOID
-InitializeJson(VOID)
+AddUserSystrayMenu(HMENU hMenu, UINT uPosition, UINT uFlags)
 {
-	CHAR* JsonConfig = FeLoadConfig(NULL);
-	if (!JsonConfig)
-		return;
-	mJson = cJSON_Parse(JsonConfig);
-	if (!mJson)
+	UINT_PTR id = IDM_USER_MIN;
+	const cJSON* st = cJSON_GetObjectItem(mJson, "systray");
+	const cJSON* hk = NULL;
+	cJSON_ArrayForEach(hk, st)
 	{
-		const char* error_ptr = cJSON_GetErrorPtr();
-		FeAddLog(1, L"Invalid JSON: %S\r\n", error_ptr ? error_ptr : "UNKNOWN ERROR");
-		return;
+		WCHAR* name;
+		if (id >= IDM_USER_MAX)
+			break;
+		name = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "name")));
+		if (name)
+		{
+			InsertMenuW(hMenu, uPosition, uFlags, id, name);
+			FeAddLog(0, L"Add Menu %p %s\r\n", id, name);
+			free(name);
+		}
+		id++;
 	}
-	free(JsonConfig);
-	FeAddLog(0, L"JSON Loaded.\r\n");
+}
+
+static INT_PTR
+HandleUserSystrayId(int Id)
+{
+	int item;
+	const cJSON* st;
+	const cJSON* hk;
+	if (Id < IDM_USER_MIN || Id > IDM_USER_MAX)
+		return (INT_PTR)FALSE;
+	st = cJSON_GetObjectItem(mJson, "systray");
+	item = Id - IDM_USER_MIN;
+	hk = cJSON_GetArrayItem(st, item);
+	if (!hk)
+		return (INT_PTR)FALSE;
+	FeParseConfig(hk);
+	return (INT_PTR)TRUE;
 }
 
 static INT_PTR
@@ -59,7 +81,14 @@ NotifyIconProc(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	UNREFERENCED_PARAMETER(wParam);
 	switch (lParam)
 	{
-	case WM_LBUTTONDOWN:
+	case WM_LBUTTONDBLCLK:
+	{
+		if (IsWindowVisible(hWnd))
+			ShowWindow(hWnd, SW_HIDE);
+		else
+			ShowWindow(hWnd, SW_RESTORE);
+	}
+	break;
 	case WM_RBUTTONDOWN:
 	case WM_CONTEXTMENU:
 	{
@@ -69,14 +98,9 @@ NotifyIconProc(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		hMenu = CreatePopupMenu();
 		if (hMenu)
 		{
-			if (IsWindowVisible(hWnd))
-				InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_HIDE, L"Hide");
-			else
-				InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_SHOW, L"Show");
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_RELOAD, L"Reload");
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EDIT, L"Edit");
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_LISTKEY, L"Hotkeys");
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EXIT, L"Exit");
+			AddUserSystrayMenu(hMenu, (UINT)-1, MF_BYPOSITION);
+			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_RELOAD, FeIsChs()? L"刷新配置" : L"Reload");
+			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EXIT, FeIsChs() ? L"退出" : L"Exit");
 			SetForegroundWindow(hWnd);
 			TrackPopupMenu(hMenu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL);
 			DestroyMenu(hMenu);
@@ -128,28 +152,11 @@ MainMenuProc(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		ShowWindow(hWnd, SW_HIDE);
 		break;
 	case IDM_EDIT:
-	{
-		BOOL bRet;
-		WCHAR wCmd[MAX_PATH + 28];
-		LPCWSTR lpConfig = FeGetConfigPath();
-		swprintf(wCmd, MAX_PATH + 28, L"notepad.exe \"%s\"", lpConfig);
-		bRet = FeExec(wCmd, SW_NORMAL, FALSE, TRUE);
-		if (bRet == FALSE)
-		{
-			swprintf(wCmd, MAX_PATH + 28, L"CANNOT LOAD\n%s", lpConfig);
-			MessageBoxW(hWnd, wCmd, L"ERROR", MB_OK);
-		}
-	}
-	/* fall through */
+		FeEditConfig(hWnd, &mJson);
+		break;
 	case IDM_RELOAD:
-	{
-		FeUnregisterHotkey();
-		cJSON_Delete(mJson);
-		FeClearLog();
-		InitializeJson();
-		FeInitializeHotkey(cJSON_GetObjectItem(mJson, "hotkey"));
-	}
-	break;
+		FeReloadConfig(&mJson);
+		break;
 	case IDM_LISTKEY:
 		FeListHotkey(hWnd);
 		break;
@@ -157,7 +164,7 @@ MainMenuProc(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		DestroyWindow(hWnd);
 		break;
 	default:
-		return (INT_PTR)FALSE;
+		return HandleUserSystrayId(wmId);
 	}
 	return (INT_PTR)TRUE;
 }
@@ -171,6 +178,10 @@ MainDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return (INT_PTR)TRUE;
 	case WM_APP:
 		return NotifyIconProc(hWnd, wParam, lParam);
+	case WM_SYSCOMMAND:
+		if (wParam == SC_CLOSE)
+			ShowWindow(hWnd, SW_HIDE);
+		/* fall through */
 	case WM_COMMAND:
 		return MainMenuProc(hWnd, wParam, lParam);
 	case WM_DESTROY:
@@ -198,7 +209,6 @@ wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR
 	LoadStringW(hInstance, IDS_APP_TITLE, wTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_FE_MENU, wWindowClass, MAX_LOADSTRING);
 
-	mJson = 0;
 	FeClearLog();
 
 	hMutex = CreateMutexW(NULL, TRUE, L"Fe{1f0d5242-d60d-4cb3-a1f6-13990bc5dcd2}");
@@ -214,7 +224,7 @@ wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR
 		return 1;
 	}
 
-	InitializeJson();
+	mJson = FeInitializeConfig();
 	FeInitializeHotkey(cJSON_GetObjectItem(mJson, "hotkey"));
 
 	while (GetMessage(&msg, NULL, 0, 0))

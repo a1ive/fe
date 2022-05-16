@@ -4,6 +4,7 @@
 #include <process.h>
 #include <tlhelp32.h>
 #include <shlwapi.h>
+#include <shellapi.h>
 
 #define MAX_LOG_BUFSZ 65535ULL
 
@@ -29,70 +30,6 @@ VOID FeClearLog(VOID)
 {
 	dbg_offset = 0;
 	log_buf[0] = L'\0';
-}
-
-LPCWSTR FeGetConfigPath(VOID)
-{
-	static WCHAR FilePath[MAX_PATH];
-	WCHAR* pExt = NULL;
-	if (!GetModuleFileNameW(NULL, FilePath, MAX_PATH))
-	{
-		FeAddLog(0, L"GetModuleFileName failed.\r\n");
-		swprintf(FilePath, MAX_PATH, L"fe.exe");
-	}
-	pExt = wcsrchr(FilePath, L'.');
-	if (pExt)
-	{
-		*pExt = L'\0';
-		swprintf(FilePath, MAX_PATH, L"%s.json", FilePath);
-	}
-	else
-	{
-		swprintf(FilePath, MAX_PATH, L"fe.json");
-	}
-	return FilePath;
-}
-
-CHAR* FeLoadConfig(DWORD* pSize)
-{
-	HANDLE Fp = INVALID_HANDLE_VALUE;
-	DWORD dwSize = 0;
-	BOOL bRet = TRUE;
-	CHAR* pConfig = NULL;
-	LPCWSTR FilePath = FeGetConfigPath();
-	
-	Fp = CreateFileW(FilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (Fp == INVALID_HANDLE_VALUE)
-	{
-		FeAddLog(0, L"CreateFile %s failed.\r\n", FilePath);
-		return NULL;
-	}
-	dwSize = GetFileSize(Fp, NULL);
-	if (dwSize == INVALID_FILE_SIZE || dwSize == 0)
-	{
-		FeAddLog(0, L"GetFileSize %s failed.\r\n", FilePath);
-		CloseHandle(Fp);
-		return NULL;
-	}
-	pConfig = (CHAR*)malloc(dwSize);
-	if (!pConfig)
-	{
-		FeAddLog(0, L"Out of memory %lu.\r\n", dwSize);
-		CloseHandle(Fp);
-		return NULL;
-	}
-	if (pSize)
-		*pSize = dwSize;
-	bRet = ReadFile(Fp, pConfig, dwSize, &dwSize, NULL);
-	CloseHandle(Fp);
-	if (!bRet)
-	{
-		FeAddLog(0, L"File %s read error.\r\n", FilePath);
-		free(pConfig);
-		return NULL;
-	}
-	FeAddLog(0, L"Load %s, size %lu.\r\n", FilePath, dwSize);
-	return pConfig;
 }
 
 typedef struct _KEYSYM
@@ -294,6 +231,22 @@ BOOL FeExec(LPCWSTR pCmd, WORD wShowWindow, BOOL bWinLogon, BOOL bWait)
 	return bRet;
 }
 
+VOID
+FeShellExec(LPCWSTR lpOperation, LPCWSTR lpFile, LPCWSTR lpParameters, LPCWSTR lpDirectory, INT nShowCmd)
+{
+	cmdline_buf[0] = L'\0';
+	if (lpDirectory)
+	{
+		ExpandEnvironmentStringsW(lpDirectory, cmdline_buf, 32767);
+		ShellExecuteW(NULL, lpOperation, lpFile, lpParameters, cmdline_buf, nShowCmd);
+	}
+	else
+	{
+		ExpandEnvironmentStringsW(lpFile, cmdline_buf, 32767);
+		ShellExecuteW(NULL, lpOperation, cmdline_buf, lpParameters, NULL, nShowCmd);
+	}
+}
+
 WORD FeStrToShow(LPCSTR sw)
 {
 	WORD wCmdShow = SW_NORMAL;
@@ -392,4 +345,12 @@ VOID FeShowWindowByTitle(LPCWSTR pFileName, INT nCmdHide, INT nCmdShow)
 	whData.CmdShow = op ? nCmdShow : nCmdHide;
 	op = ~op;
 	EnumWindows(FeWindowIter, (LPARAM)&whData);
+}
+
+BOOL FeIsChs(VOID)
+{
+	LANGID lang = GetUserDefaultUILanguage();
+	if (lang == 2052)
+		return TRUE;
+	return FALSE;
 }

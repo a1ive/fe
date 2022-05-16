@@ -19,6 +19,9 @@
 #define IDC_STATIC_TEXT                 1003
 #define IDC_STATIC_LOG                  1004
 
+#define IDM_USER_MIN                    0xf000
+#define IDM_USER_MAX                    0xf100
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

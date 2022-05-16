@@ -41,6 +41,9 @@
     <ClCompile Include="hotkey.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="config.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fe.h">

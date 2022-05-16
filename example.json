@@ -49,5 +49,17 @@
 			"Screenshot" : "all",
 			"Save" : "ask"
 		}
+	],
+	"Systray" :
+	[
+		{
+			"Name" : "注册表编辑器",
+			"Exec" : "regedit.exe"
+		},
+		{
+			"Name" : "打开系统目录",
+			"Shell" : "open",
+			"File" : "%SystemRoot%"
+		}
 	]
 }
