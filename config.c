@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+ï»¿// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fe.h"
 
@@ -71,8 +71,8 @@ static CHAR* FeLoadConfigFile(DWORD* pSize)
 static VOID FeInitializeTree(cJSON* pJSON)
 {
 	HTREEITEM root = FeAddItemToTree(NULL, L"JSON", 1);
-	HTREEITEM hk = FeAddItemToTree(root, FeIsChs() ? L"ÈÈ¼ü" : L"Hotkeys", 2);
-	HTREEITEM hs = FeAddItemToTree(root, FeIsChs() ? L"ÏµÍ³ÍÐÅÌ" : L"System Tray", 2);
+	HTREEITEM hk = FeAddItemToTree(root, FeIsChs() ? L"çƒ­é”®" : L"Hotkeys", 2);
+	HTREEITEM hs = FeAddItemToTree(root, FeIsChs() ? L"ç³»ç»Ÿæ‰˜ç›˜" : L"System Tray", 2);
 	const cJSON* jk = cJSON_GetObjectItem(pJSON, "hotkey");
 	const cJSON* js = cJSON_GetObjectItem(pJSON, "systray");
 	const cJSON* item;
