@@ -9,7 +9,7 @@ extern "C"
 {
 #endif
 
-VOID FeAddLog(INT err, WCHAR* fmt, ...);
+VOID FeAddLog(INT err, LPCWSTR fmt, ...);
 
 VOID FeClearLog(VOID);
 
@@ -60,6 +60,8 @@ HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel);
 VOID FeExpandTree(HTREEITEM hTree);
 
 VOID FeDeleteTree(VOID);
+
+HRESULT FeCreateShortcut(LPCWSTR pTarget, LPCWSTR pLnkPath, LPCWSTR pParam, LPCWSTR pIcon, INT id, INT sw);
 
 #ifdef __cplusplus
 }

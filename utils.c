@@ -13,7 +13,7 @@ static WCHAR log_buf[MAX_LOG_BUFSZ];
 
 static int dbg_offset = 0;
 
-VOID FeAddLog(INT err, WCHAR* fmt, ...)
+VOID FeAddLog(INT err, LPCWSTR fmt, ...)
 {
 	int len;
 	va_list args;
@@ -214,7 +214,7 @@ BOOL FeExec(LPCWSTR pCmd, WORD wShowWindow, BOOL bWinLogon, BOOL bWait)
 	si.cb = sizeof(STARTUPINFOW);
 	si.dwFlags = STARTF_USESHOWWINDOW;
 	si.wShowWindow = wShowWindow;
-	si.lpDesktop = bWinLogon ? L"WinSta0\\WinLogon" : L"WinSta0\\Default";
+	si.lpDesktop = (LPWSTR)(bWinLogon ? L"WinSta0\\WinLogon" : L"WinSta0\\Default");
 	cmdline_buf[0] = L'\0';
 	ExpandEnvironmentStringsW(pCmd, cmdline_buf, 32767);
 

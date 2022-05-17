@@ -4,6 +4,10 @@
 
 #include "utils.h"
 
+#include <math.h>
+
+static BOOL mRunInitCmd = TRUE;
+
 LPCWSTR FeGetConfigPath(VOID)
 {
 	static WCHAR FilePath[MAX_PATH];
@@ -95,6 +99,22 @@ static VOID FeInitializeTree(cJSON* pJSON)
 	FeExpandTree(hs);
 }
 
+static VOID FeRunInitCmd(cJSON* pJSON)
+{
+	const cJSON* hi;
+	const cJSON* item;
+	if (mRunInitCmd != TRUE)
+		return;
+	FeAddLog(0, L"Execute init commands.\r\n");
+	mRunInitCmd = FALSE;
+	hi = cJSON_GetObjectItem(pJSON, "init");
+	cJSON_ArrayForEach(item, hi)
+	{
+		FeParseConfig(item);
+	}
+}
+
+
 cJSON*
 FeInitializeConfig(VOID)
 {
@@ -114,6 +134,7 @@ FeInitializeConfig(VOID)
 	free(pConfigData);
 	FeAddLog(0, L"JSON Loaded.\r\n");
 	FeInitializeTree(pJSON);
+	FeRunInitCmd(pJSON);
 	return pJSON;
 }
 
@@ -202,7 +223,7 @@ VOID FeParseConfig(const cJSON* hk)
 	if (val)
 	{
 		WCHAR* file = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "file")));
-		WCHAR* param = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "parameters")));
+		WCHAR* param = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "args")));
 		WCHAR* dir = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "directory")));
 		FeAddLog(0, L"Shell: %s %s %s %s\r\n", val,
 			file ? file : L"", param ? param : L"", dir ? dir : L"");
@@ -214,6 +235,29 @@ VOID FeParseConfig(const cJSON* hk)
 			free(param);
 		if (dir)
 			free(dir);
+		free(val);
+		return;
+	}
+	val = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "shortcut")));
+	if (val)
+	{
+		WCHAR* file = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "file")));
+		WCHAR* args = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "args")));
+		WCHAR* icon = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "icon")));
+		double id = cJSON_GetNumberValue(cJSON_GetObjectItem(hk, "id"));
+		if (!file)
+		{
+			free(val);
+			return;
+		}
+		FeAddLog(0, L"Shortcut: %s.lnk -> %s\r\n", val, file);
+		FeCreateShortcut(file, val, args, icon, (id == (double)NAN) ? 0 : (int) id,
+			FeStrToShow(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "window"))));
+		if (args)
+			free(args);
+		if (icon)
+			free(icon);
+		free(file);
 		free(val);
 		return;
 	}
