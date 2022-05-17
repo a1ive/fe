@@ -5,6 +5,7 @@
 #include <tlhelp32.h>
 #include <shlwapi.h>
 #include <shellapi.h>
+#include <VersionHelpers.h>
 
 #define MAX_LOG_BUFSZ 65535ULL
 
@@ -142,7 +143,7 @@ FeStrToKey(LPCSTR pName, UINT* pModifiers)
 {
 	size_t i;
 	UINT vk = 0;
-	UINT fsModifiers = MOD_NOREPEAT;
+	UINT fsModifiers = IsWindows7OrGreater() ? MOD_NOREPEAT : 0;
 	LPCSTR p = pName;
 
 	for (; p && *p;)
@@ -353,4 +354,67 @@ BOOL FeIsChs(VOID)
 	if (lang == 2052)
 		return TRUE;
 	return FALSE;
+}
+
+HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel)
+{
+	TVITEMW tvi;
+	TVINSERTSTRUCTW tvins;
+	static HTREEITEM hPrev = (HTREEITEM)TVI_FIRST;
+	HTREEITEM hti;
+	HWND hwndTV = GetDlgItem(gWnd, IDC_STATIC_TREE);
+
+	if (!hwndTV || (nLevel != 1 && !hParent) || !lpszItem)
+		return NULL;
+	tvi.mask = TVIF_TEXT | TVIF_PARAM;
+
+	tvi.pszText = (LPWSTR)lpszItem;
+	tvi.cchTextMax = (int)(wcslen(lpszItem) + 1);
+
+	// Save the heading level in the item's application-defined 
+	// data area. 
+	tvi.lParam = (LPARAM)nLevel;
+	tvins.item = tvi;
+	tvins.hInsertAfter = hPrev;
+
+	// Set the parent item based on the specified level. 
+	if (nLevel == 1)
+		tvins.hParent = TVI_ROOT;
+	else
+		tvins.hParent = hParent;
+
+	// Add the item to the tree-view control. 
+	hPrev = (HTREEITEM)SendMessageW(hwndTV, TVM_INSERTITEM,
+		0, (LPARAM)(LPTVINSERTSTRUCT)&tvins);
+
+	if (hPrev == NULL)
+	{
+		return NULL;
+	}
+
+	// The new item is a child item. Give the parent item a 
+	// closed folder bitmap to indicate it now has child items. 
+	if (nLevel > 1)
+	{
+		hti = TreeView_GetParent(hwndTV, hPrev);
+		tvi.mask = 0;
+		tvi.hItem = hti;
+		TreeView_SetItem(hwndTV, &tvi);
+	}
+
+	return hPrev;
+}
+
+VOID FeExpandTree(HTREEITEM hTree)
+{
+	HWND hwndTV = GetDlgItem(gWnd, IDC_STATIC_TREE);
+	if (hwndTV)
+		TreeView_Expand(hwndTV, hTree, TVE_EXPAND);
+}
+
+VOID FeDeleteTree(VOID)
+{
+	HWND hwndTV = GetDlgItem(gWnd, IDC_STATIC_TREE);
+	if (hwndTV)
+		TreeView_DeleteAllItems(hwndTV);
 }

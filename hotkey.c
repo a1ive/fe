@@ -4,8 +4,6 @@
 
 #include "utils.h"
 
-#define MAX_HOTKEY_ID 0xBFFF
-
 static cJSON* mHotkeyJson;
 static INT mHotkeyCount;
 
@@ -25,6 +23,7 @@ FeInitializeHotkey(cJSON* jsHotkeys)
 {
 	int i;
 	const cJSON* hk = NULL;
+	const WCHAR* wkey;
 	mHotkeyJson = jsHotkeys;
 	if (!mHotkeyJson)
 		return;
@@ -60,14 +59,15 @@ FeInitializeHotkey(cJSON* jsHotkeys)
 			FeAddLog(0, L"Hotkey %d invalid string %S.\r\n", i, keyname);
 			continue;
 		}
+		wkey = FeKeyToStr(fsModifiers, vk);
 		if (!RegisterHotKey(NULL, i, fsModifiers, vk))
 		{
 			mHotkeyData[i] = 0;
-			FeAddLog(0, L"Register hotkey %d %s failed.\r\n", i, FeKeyToStr(fsModifiers, vk));
+			FeAddLog(0, L"Register hotkey %d %s failed.\r\n", i, wkey);
 			continue;
 		}
 		mHotkeyData[i] = (((UINT64)fsModifiers) << 32U) | vk;
-		FeAddLog(0, L"Register hotkey %d %s OK.\r\n", i, FeKeyToStr(fsModifiers, vk));
+		FeAddLog(0, L"Register hotkey %d %s OK.\r\n", i, wkey);
 	}
 }
 

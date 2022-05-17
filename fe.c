@@ -99,7 +99,7 @@ NotifyIconProc(HWND hWnd, WPARAM wParam, LPARAM lParam)
 		if (hMenu)
 		{
 			AddUserSystrayMenu(hMenu, (UINT)-1, MF_BYPOSITION);
-			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_RELOAD, FeIsChs()? L"刷新配置" : L"Reload");
+			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_RELOAD, FeIsChs() ? L"重新加载" : L"Reload");
 			InsertMenuW(hMenu, (UINT)-1, MF_BYPOSITION, IDM_EXIT, FeIsChs() ? L"退出" : L"Exit");
 			SetForegroundWindow(hWnd);
 			TrackPopupMenu(hMenu, TPM_BOTTOMALIGN, pt.x, pt.y, 0, hWnd, NULL);

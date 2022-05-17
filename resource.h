@@ -18,7 +18,7 @@
 #define IDC_STATIC_ICON                 1002
 #define IDC_STATIC_TEXT                 1003
 #define IDC_STATIC_LOG                  1004
-
+#define IDC_STATIC_TREE                 1005
 #define IDM_USER_MIN                    0xf000
 #define IDM_USER_MAX                    0xf100
 
@@ -29,7 +29,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1005
+#define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           111
 #endif
 #endif

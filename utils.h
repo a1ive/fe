@@ -55,6 +55,12 @@ VOID FeHandleHotkey(const MSG* msg);
 
 BOOL FeIsChs(VOID);
 
+HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel);
+
+VOID FeExpandTree(HTREEITEM hTree);
+
+VOID FeDeleteTree(VOID);
+
 #ifdef __cplusplus
 }
 #endif

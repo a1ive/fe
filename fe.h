@@ -9,8 +9,11 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
+#include <commctrl.h>
 
 #define MAX_LOADSTRING 100
+
+#define MAX_HOTKEY_ID 0xBFFF
 
 #ifdef __cplusplus
 extern "C"

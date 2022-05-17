@@ -68,6 +68,33 @@ static CHAR* FeLoadConfigFile(DWORD* pSize)
 	return pConfig;
 }
 
+static VOID FeInitializeTree(cJSON* pJSON)
+{
+	HTREEITEM root = FeAddItemToTree(NULL, L"JSON", 1);
+	HTREEITEM hk = FeAddItemToTree(root, FeIsChs() ? L"ÈÈ¼ü" : L"Hotkeys", 2);
+	HTREEITEM hs = FeAddItemToTree(root, FeIsChs() ? L"ÏµÍ³ÍÐÅÌ" : L"System Tray", 2);
+	const cJSON* jk = cJSON_GetObjectItem(pJSON, "hotkey");
+	const cJSON* js = cJSON_GetObjectItem(pJSON, "systray");
+	const cJSON* item;
+	FeExpandTree(root);
+	cJSON_ArrayForEach(item, jk)
+	{
+		WCHAR* w = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(item, "key")));
+		FeAddItemToTree(hk, w, 3);
+		if (w)
+			free(w);
+	}
+	FeExpandTree(hk);
+	cJSON_ArrayForEach(item, js)
+	{
+		WCHAR* w = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(item, "name")));
+		FeAddItemToTree(hs, w, 3);
+		if (w)
+			free(w);
+	}
+	FeExpandTree(hs);
+}
+
 cJSON*
 FeInitializeConfig(VOID)
 {
@@ -86,6 +113,7 @@ FeInitializeConfig(VOID)
 	}
 	free(pConfigData);
 	FeAddLog(0, L"JSON Loaded.\r\n");
+	FeInitializeTree(pJSON);
 	return pJSON;
 }
 
@@ -95,6 +123,7 @@ VOID FeReloadConfig(cJSON** m)
 	FeUnregisterHotkey();
 	cJSON_Delete(pJSON);
 	FeClearLog();
+	FeDeleteTree();
 	pJSON = FeInitializeConfig();
 	FeInitializeHotkey(cJSON_GetObjectItem(pJSON, "hotkey"));
 	*m = pJSON;
