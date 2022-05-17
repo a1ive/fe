@@ -31,7 +31,6 @@ jobs:
         msbuild /m /p:Configuration=Release /p:platform=x64 ${{env.SOLUTION_FILE_PATH}}
         msbuild /m /p:Configuration=Release /p:platform=x86 ${{env.SOLUTION_FILE_PATH}}
         msbuild /m /p:Configuration=NOVCLTL /p:platform=x64 ${{env.SOLUTION_FILE_PATH}}
-        msbuild /m /p:Configuration=NOVCLTL /p:platform=x86 ${{env.SOLUTION_FILE_PATH}}
         md fe
         md fe\x64
         move x64\Release\fe.exe fe\x64\fe.exe
@@ -42,9 +41,6 @@ jobs:
         md fe\NOVCLTLx64
         move x64\NOVCLTL\fe.exe fe\NOVCLTLx64\fe.exe
         copy example.json fe\NOVCLTLx64\fe.json
-        md fe\NOVCLTLx86
-        move Win32\NOVCLTL\fe.exe fe\NOVCLTLx86\fe.exe
-        copy example.json fe\NOVCLTLx86\fe.json
         copy LICENSE fe\LICENSE
         copy README.md fe\README.md
 
@@ -54,8 +50,7 @@ jobs:
         version: latest
         files: |
           .\fe\NOVCLTLx64\fe.exe
-          .\fe\NOVCLTLx86\fe.exe
-        args: -fq
+        args: -9v
 
     - uses: thedoctor0/zip-release@master
       with:
