@@ -1723,7 +1723,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     }
 
     /* Compose the output: */
-    length = (size_t) (output_buffer->format ? 2 : 1); /* fmt: {\n */
+    length = (size_t) (output_buffer->format ? 3 : 1); /* fmt: {\r\n */
     output_pointer = ensure(output_buffer, length + 1);
     if (output_pointer == NULL)
     {
@@ -1734,6 +1734,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
     output_buffer->depth++;
     if (output_buffer->format)
     {
+        *output_pointer++ = '\r';
         *output_pointer++ = '\n';
     }
     output_buffer->offset += length;
@@ -1783,7 +1784,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
         update_offset(output_buffer);
 
         /* print comma if not last */
-        length = ((size_t)(output_buffer->format ? 1 : 0) + (size_t)(current_item->next ? 1 : 0));
+        length = ((size_t)(output_buffer->format ? 2 : 0) + (size_t)(current_item->next ? 1 : 0));
         output_pointer = ensure(output_buffer, length + 1);
         if (output_pointer == NULL)
         {
@@ -1796,6 +1797,7 @@ static cJSON_bool print_object(const cJSON * const item, printbuffer * const out
 
         if (output_buffer->format)
         {
+            *output_pointer++ = '\r';
             *output_pointer++ = '\n';
         }
         *output_pointer = '\0';

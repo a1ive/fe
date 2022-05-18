@@ -51,7 +51,7 @@ static CHAR* FeLoadConfigFile(DWORD* pSize)
 		CloseHandle(Fp);
 		return NULL;
 	}
-	pConfig = (CHAR*)malloc(dwSize);
+	pConfig = (CHAR*)malloc(1ULL + dwSize);
 	if (!pConfig)
 	{
 		FeAddLog(0, L"Out of memory %lu.\r\n", dwSize);
@@ -69,30 +69,32 @@ static CHAR* FeLoadConfigFile(DWORD* pSize)
 		return NULL;
 	}
 	FeAddLog(0, L"Load %s, size %lu.\r\n", FilePath, dwSize);
+	pConfig[dwSize] = '\0';
 	return pConfig;
 }
 
 static VOID FeInitializeTree(cJSON* pJSON)
 {
-	HTREEITEM root = FeAddItemToTree(NULL, L"JSON", 1);
-	HTREEITEM hk = FeAddItemToTree(root, FeIsChs() ? L"热键" : L"Hotkeys", 2);
-	HTREEITEM hs = FeAddItemToTree(root, FeIsChs() ? L"系统托盘" : L"System Tray", 2);
 	const cJSON* jk = cJSON_GetObjectItem(pJSON, "hotkey");
 	const cJSON* js = cJSON_GetObjectItem(pJSON, "systray");
 	const cJSON* item;
+	HTREEITEM root = FeAddItemToTree(NULL, L"JSON", 1, pJSON);
+	HTREEITEM hk = FeAddItemToTree(root, FeIsChs() ? L"热键" : L"Hotkeys", 2, jk);
+	HTREEITEM hs = FeAddItemToTree(root, FeIsChs() ? L"系统托盘" : L"System Tray", 2, js);
 	FeExpandTree(root);
 	cJSON_ArrayForEach(item, jk)
 	{
-		WCHAR* w = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(item, "key")));
-		FeAddItemToTree(hk, w, 3);
-		if (w)
-			free(w);
+		UINT vk = 0, fsModifiers = 0;
+		CHAR* k = cJSON_GetStringValue(cJSON_GetObjectItem(item, "key"));
+		vk = FeStrToKey(k, &fsModifiers);
+		if (vk)
+			FeAddItemToTree(hk, FeKeyToStr(fsModifiers, vk), 3, item);
 	}
 	FeExpandTree(hk);
 	cJSON_ArrayForEach(item, js)
 	{
 		WCHAR* w = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(item, "name")));
-		FeAddItemToTree(hs, w, 3);
+		FeAddItemToTree(hs, w, 3, item);
 		if (w)
 			free(w);
 	}
@@ -122,6 +124,7 @@ FeInitializeConfig(VOID)
 	CHAR* pConfigData = FeLoadConfigFile(NULL);
 	if (!pConfigData)
 		return NULL;
+	cJSON_Minify(pConfigData);
 	pJSON = cJSON_Parse(pConfigData);
 	if (!pJSON)
 	{
@@ -143,7 +146,7 @@ VOID FeReloadConfig(cJSON** m)
 	cJSON* pJSON = *m;
 	FeUnregisterHotkey();
 	cJSON_Delete(pJSON);
-	FeClearLog();
+	FeClearLog(0);
 	FeDeleteTree();
 	pJSON = FeInitializeConfig();
 	FeInitializeHotkey(cJSON_GetObjectItem(pJSON, "hotkey"));

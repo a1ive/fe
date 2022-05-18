@@ -7,30 +7,33 @@
 #include <shellapi.h>
 #include <VersionHelpers.h>
 
-#define MAX_LOG_BUFSZ 65535ULL
-
-static WCHAR log_buf[MAX_LOG_BUFSZ];
-
-static int dbg_offset = 0;
-
-VOID FeAddLog(INT err, LPCWSTR fmt, ...)
+VOID FeAddLog(INT lvl, LPCWSTR fmt, ...)
 {
 	int len;
 	va_list args;
+	WCHAR* str;
+	HWND hEdit = GetDlgItem(gWnd, (lvl == 2) ? IDC_STATIC_JSON : IDC_STATIC_LOG);
+	int index = GetWindowTextLengthW(hEdit);
 	va_start(args, fmt);
-	if (dbg_offset < 0 || dbg_offset >= MAX_LOG_BUFSZ - 100)
-		dbg_offset = 0;
-	len = _vsnwprintf_s(log_buf + dbg_offset, MAX_LOG_BUFSZ - dbg_offset - 1, _TRUNCATE, fmt, args);
-	if (err)
-		MessageBoxW(gWnd, log_buf + dbg_offset, L"ERROR", MB_OK);
-	SetDlgItemTextW(gWnd, IDC_STATIC_LOG, log_buf);
-	dbg_offset += len;
+	len = _vscwprintf(fmt, args);
+	if (len == -1)
+		return;
+	str = (WCHAR*)calloc((size_t)len + 1, sizeof(WCHAR));
+	if (!str)
+		return;
+	_vsnwprintf_s(str, (size_t)len + 1, _TRUNCATE, fmt, args);
+	if (lvl == 1)
+		MessageBoxW(gWnd, str, L"ERROR", MB_OK);
+	SendMessageW(hEdit, EM_SETSEL, (WPARAM)index, (LPARAM)index);
+	SendMessageW(hEdit, EM_REPLACESEL, 0, (LPARAM)str);
+	free(str);
 }
 
-VOID FeClearLog(VOID)
+VOID FeClearLog(int lvl)
 {
-	dbg_offset = 0;
-	log_buf[0] = L'\0';
+	if (lvl == 0)
+		SetDlgItemTextW(gWnd, IDC_STATIC_LOG, L"");
+	SetDlgItemTextW(gWnd, IDC_STATIC_JSON, L"");
 }
 
 typedef struct _KEYSYM
@@ -42,22 +45,25 @@ typedef struct _KEYSYM
 /* The table for key symbols. (from GRUB4DOS) */
 static KEYSYM keytable[] =
 {
-	{"backspace",     VK_BACK},
-	{"tab",           VK_TAB},
-	{"enter",         VK_RETURN},
-	{"escape",        VK_ESCAPE},
-	{"space",         VK_SPACE},
-	{"pageup",        VK_PRIOR},
-	{"pagedown",      VK_NEXT},
-	{"end",           VK_END},
-	{"home",          VK_HOME},
-	{"leftarrow",     VK_LEFT},
-	{"uparrow",	      VK_UP},
-	{"rightarrow",    VK_RIGHT},
-	{"downarrow",     VK_DOWN},
-	{"select",        VK_SELECT},
-	{"insert",        VK_INSERT},
-	{"delete",        VK_DELETE},
+	{"Backspace",     VK_BACK},
+	{"Tab",           VK_TAB},
+	{"Clear",         VK_CLEAR},
+	{"Enter",         VK_RETURN},
+	{"Pause",         VK_PAUSE},
+	{"CapsLock",      VK_CAPITAL},
+	{"Escape",        VK_ESCAPE},
+	{"Space",         VK_SPACE},
+	{"PageUp",        VK_PRIOR},
+	{"PageDown",      VK_NEXT},
+	{"End",           VK_END},
+	{"Home",          VK_HOME},
+	{"Leftarrow",     VK_LEFT},
+	{"UpArrow",       VK_UP},
+	{"RightArrow",    VK_RIGHT},
+	{"DownArrow",     VK_DOWN},
+	{"Select",        VK_SELECT},
+	{"Insert",        VK_INSERT},
+	{"Delete",        VK_DELETE},
 	// 0x30 - 0x39, '0' - '9'
 	{"0",             0x30},
 	{"1",             0x31},
@@ -70,44 +76,55 @@ static KEYSYM keytable[] =
 	{"8",             0x38},
 	{"9",             0x39},
 	// 0x41 - 0x5a, 'A' - 'Z'
-	{"a",             0x41},
-	{"b",             0x42},
-	{"c",             0x43},
-	{"d",             0x44},
-	{"e",             0x45},
-	{"f",             0x46},
-	{"g",             0x47},
-	{"h",             0x48},
-	{"i",             0x49},
-	{"j",             0x4A},
-	{"k",             0x4B},
-	{"l",             0x4C},
-	{"m",             0x4D},
-	{"n",             0x4E},
-	{"o",             0x4F},
-	{"p",             0x50},
-	{"q",             0x51},
-	{"r",             0x52},
-	{"s",             0x53},
-	{"t",             0x54},
-	{"u",             0x55},
-	{"v",             0x56},
-	{"w",             0x57},
-	{"x",             0x58},
-	{"y",             0x59},
-	{"z",             0x5A},
-	{"f1",            VK_F1},
-	{"f2",            VK_F2},
-	{"f3",            VK_F3},
-	{"f4",            VK_F4},
-	{"f5",            VK_F5},
-	{"f6",            VK_F6},
-	{"f7",            VK_F7},
-	{"f8",            VK_F8},
-	{"f9",            VK_F9},
-	{"f10",           VK_F10},
-	{"f11",           VK_F11},
-	//{"f12",           VK_F12},
+	{"A",             0x41},
+	{"B",             0x42},
+	{"C",             0x43},
+	{"D",             0x44},
+	{"E",             0x45},
+	{"F",             0x46},
+	{"G",             0x47},
+	{"H",             0x48},
+	{"I",             0x49},
+	{"J",             0x4A},
+	{"K",             0x4B},
+	{"L",             0x4C},
+	{"M",             0x4D},
+	{"N",             0x4E},
+	{"O",             0x4F},
+	{"P",             0x50},
+	{"Q",             0x51},
+	{"R",             0x52},
+	{"S",             0x53},
+	{"T",             0x54},
+	{"U",             0x55},
+	{"V",             0x56},
+	{"W",             0x57},
+	{"X",             0x58},
+	{"Y",             0x59},
+	{"Z",             0x5A},
+	{"Multiply",      VK_MULTIPLY},
+	{"Add",           VK_ADD},
+	{"Separator",     VK_SEPARATOR},
+	{"Subtract",      VK_SUBTRACT},
+	{"Decimal",       VK_DECIMAL},
+	{"Divide",        VK_DIVIDE},
+	{"F1",            VK_F1},
+	{"F2",            VK_F2},
+	{"F3",            VK_F3},
+	{"F4",            VK_F4},
+	{"F5",            VK_F5},
+	{"F6",            VK_F6},
+	{"F7",            VK_F7},
+	{"F8",            VK_F8},
+	{"F9",            VK_F9},
+	{"F10",           VK_F10},
+	{"F11",           VK_F11},
+	// 0x7b - 0x87, F12 - F24
+	{"NumLock",       VK_NUMLOCK},
+	{"ScrLock",       VK_SCROLL},
+	{"VolMute",       VK_VOLUME_MUTE},
+	{"VolDown",       VK_VOLUME_DOWN},
+	{"VolUp",         VK_VOLUME_UP},
 };
 
 LPCWSTR FeKeyToStr(UINT fsModifiers, UINT vk)
@@ -130,10 +147,10 @@ LPCWSTR FeKeyToStr(UINT fsModifiers, UINT vk)
 		_snwprintf_s(tmp, 32, _TRUNCATE, L"0x%08x", vk);
 
 	_snwprintf_s(keyname, 64, _TRUNCATE, L"%s%s%s%s%s",
-		fsModifiers & MOD_CONTROL ? L"ctrl-" : L"",
-		fsModifiers & MOD_SHIFT ? L"shift-" : L"",
-		fsModifiers & MOD_ALT ? L"alt-" : L"",
-		fsModifiers & MOD_WIN ? L"win-" : L"", tmp);
+		fsModifiers & MOD_CONTROL ? L"Ctrl-" : L"",
+		fsModifiers & MOD_SHIFT ? L"Shift-" : L"",
+		fsModifiers & MOD_ALT ? L"Alt-" : L"",
+		fsModifiers & MOD_WIN ? L"Win-" : L"", tmp);
 
 	return keyname;
 }
@@ -148,25 +165,25 @@ FeStrToKey(LPCSTR pName, UINT* pModifiers)
 
 	for (; p && *p;)
 	{
-		if (_strnicmp(p, "ctrl-", 5) == 0)
+		if (_strnicmp(p, "Ctrl-", 5) == 0)
 		{
 			p += 5;
 			fsModifiers |= MOD_CONTROL;
 			continue;
 		}
-		else if (_strnicmp(p, "shift-", 6) == 0)
+		else if (_strnicmp(p, "Shift-", 6) == 0)
 		{
 			p += 6;
 			fsModifiers |= MOD_SHIFT;
 			continue;
 		}
-		else if (_strnicmp(p, "alt-", 4) == 0)
+		else if (_strnicmp(p, "Alt-", 4) == 0)
 		{
 			p += 4;
 			fsModifiers |= MOD_ALT;
 			continue;
 		}
-		else if (_strnicmp(p, "win-", 4) == 0)
+		else if (_strnicmp(p, "Win-", 4) == 0)
 		{
 			p += 4;
 			// Hotkeys that involve the Windows key are reserved for use by the operating system.
@@ -356,7 +373,7 @@ BOOL FeIsChs(VOID)
 	return FALSE;
 }
 
-HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel)
+HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel, const cJSON* lpConfig)
 {
 	TVITEMW tvi;
 	TVINSERTSTRUCTW tvins;
@@ -371,19 +388,15 @@ HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel)
 	tvi.pszText = (LPWSTR)lpszItem;
 	tvi.cchTextMax = (int)(wcslen(lpszItem) + 1);
 
-	// Save the heading level in the item's application-defined 
-	// data area. 
-	tvi.lParam = (LPARAM)nLevel;
+	tvi.lParam = (LPARAM)lpConfig;
 	tvins.item = tvi;
 	tvins.hInsertAfter = hPrev;
 
-	// Set the parent item based on the specified level. 
 	if (nLevel == 1)
 		tvins.hParent = TVI_ROOT;
 	else
 		tvins.hParent = hParent;
 
-	// Add the item to the tree-view control. 
 	hPrev = (HTREEITEM)SendMessageW(hwndTV, TVM_INSERTITEM,
 		0, (LPARAM)(LPTVINSERTSTRUCT)&tvins);
 
@@ -392,8 +405,6 @@ HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel)
 		return NULL;
 	}
 
-	// The new item is a child item. Give the parent item a 
-	// closed folder bitmap to indicate it now has child items. 
 	if (nLevel > 1)
 	{
 		hti = TreeView_GetParent(hwndTV, hPrev);

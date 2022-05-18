@@ -9,9 +9,9 @@ extern "C"
 {
 #endif
 
-VOID FeAddLog(INT err, LPCWSTR fmt, ...);
+VOID FeAddLog(INT lvl, LPCWSTR fmt, ...);
 
-VOID FeClearLog(VOID);
+VOID FeClearLog(INT lvl);
 
 LPCWSTR FeGetConfigPath(VOID);
 
@@ -55,7 +55,7 @@ VOID FeHandleHotkey(const MSG* msg);
 
 BOOL FeIsChs(VOID);
 
-HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel);
+HTREEITEM FeAddItemToTree(HTREEITEM hParent, LPCWSTR lpszItem, int nLevel, const cJSON* lpConfig);
 
 VOID FeExpandTree(HTREEITEM hTree);
 

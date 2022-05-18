@@ -75,9 +75,9 @@ VOID
 FeListHotkey(HWND hWnd)
 {
 	int i;
-	FeClearLog();
+	FeClearLog(2);
 	ShowWindow(hWnd, SW_RESTORE);
-	FeAddLog(0, L"Hotkeys:\r\n");
+	FeAddLog(2, L"Hotkeys:\r\n");
 	for (i = 0; i < mHotkeyCount; i++)
 	{
 		const cJSON* hk = cJSON_GetArrayItem(mHotkeyJson, i);
@@ -85,13 +85,12 @@ FeListHotkey(HWND hWnd)
 		if (mHotkeyData[i] == 0)
 			continue;
 		wn = FeUtf8ToWcs(cJSON_GetStringValue(cJSON_GetObjectItem(hk, "note")));
-		FeAddLog(0, L"%s%s%s\r\n",
+		FeAddLog(2, L"%s%s%s\r\n",
 			FeKeyToStr(mHotkeyData[i] >> 32, mHotkeyData[i] & 0xFFFFFFFF),
 			wn ? L", " : L"", wn ? wn : L"");
 		if (wn)
 			free(wn);
 	}
-	FeAddLog(0, L"--------------------------------\r\n");
 }
 
 VOID

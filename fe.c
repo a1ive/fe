@@ -169,6 +169,27 @@ MainMenuProc(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)TRUE;
 }
 
+static INT_PTR
+TreeViewProc(HWND hWnd, WPARAM wParam, LPARAM lParam)
+{
+	const cJSON* hk;
+	WCHAR* wk;
+	LPNMTREEVIEWW pnmtv = (LPNMTREEVIEWW)lParam;
+	UNREFERENCED_PARAMETER(wParam);
+	UNREFERENCED_PARAMETER(hWnd);
+	if (pnmtv->hdr.code != TVN_SELCHANGING)
+		return (INT_PTR)FALSE;
+	hk = (const cJSON*)pnmtv->itemNew.lParam;
+	wk = FeUtf8ToWcs(cJSON_Print(hk));
+	if (wk)
+	{
+		FeClearLog(2);
+		FeAddLog(2, L"%s", wk);
+		free(wk);
+	}
+	return (INT_PTR)TRUE;
+}
+
 static INT_PTR CALLBACK
 MainDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -178,6 +199,8 @@ MainDlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return (INT_PTR)TRUE;
 	case WM_APP:
 		return NotifyIconProc(hWnd, wParam, lParam);
+	case WM_NOTIFY:
+		return TreeViewProc(hWnd, wParam, lParam);
 	case WM_SYSCOMMAND:
 		if (wParam == SC_CLOSE)
 			ShowWindow(hWnd, SW_HIDE);
@@ -209,7 +232,7 @@ wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR
 	LoadStringW(hInstance, IDS_APP_TITLE, wTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_FE_MENU, wWindowClass, MAX_LOADSTRING);
 
-	FeClearLog();
+	FeClearLog(0);
 
 	hMutex = CreateMutexW(NULL, TRUE, L"Fe{1f0d5242-d60d-4cb3-a1f6-13990bc5dcd2}");
 	if (GetLastError() == ERROR_ALREADY_EXISTS || !hMutex)
